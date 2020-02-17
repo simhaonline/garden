@@ -30,7 +30,7 @@ import { TaskGraph, TaskResults, ProcessTasksOpts } from "./task-graph"
 import { getLogger } from "./logger/logger"
 import { PluginActionHandlers, GardenPlugin } from "./types/plugin/plugin"
 import { loadConfig, findProjectConfig, prepareModuleResource } from "./config/base"
-import { DeepPrimitiveMap } from "./config/common"
+import { DeepPrimitiveMap, PrimitiveMap } from "./config/common"
 import { validateSchema } from "./config/validation"
 import { BaseTask } from "./tasks/base"
 import { LocalConfigStore, ConfigStore, GlobalConfigStore } from "./config-store"
@@ -61,8 +61,9 @@ import { deline, naturalList } from "./util/string"
 import { ensureConnected } from "./db/connection"
 import { DependencyValidationGraph } from "./util/validate-dependencies"
 import { Profile } from "./util/profiling"
-import { readAuthToken, login } from "./platform/auth"
+import { readAuthToken, login } from "./cloud/auth"
 import { ResolveModuleTask, getResolvedModules } from "./tasks/resolve-module"
+import { getSecrets } from "./cloud/secrets"
 import username from "username"
 
 export interface ActionHandlerMap<T extends keyof PluginActionHandlers> {
@@ -118,6 +119,7 @@ export interface GardenParams {
   projectSources?: SourceConfig[]
   providerConfigs: ProviderConfig[]
   variables: DeepPrimitiveMap
+  secrets: PrimitiveMap
   sessionId: string | null
   username: string | undefined
   vcs: VcsHandler
@@ -154,6 +156,7 @@ export class Garden {
   public readonly projectName: string
   public readonly environmentName: string
   public readonly variables: DeepPrimitiveMap
+  public readonly secrets: PrimitiveMap
   public readonly projectSources: SourceConfig[]
   public readonly buildDir: BuildDir
   public readonly gardenDirPath: string
@@ -187,6 +190,7 @@ export class Garden {
     this.projectSources = params.projectSources || []
     this.providerConfigs = params.providerConfigs
     this.variables = params.variables
+    this.secrets = params.secrets
     this.workingCopyId = params.workingCopyId
     this.dotIgnoreFiles = params.dotIgnoreFiles
     this.moduleIncludePatterns = params.moduleIncludePatterns
@@ -289,6 +293,7 @@ export class Garden {
     // TODO: Read the platformUrl from config.
     const platformUrl = process.env.GARDEN_CLOUD ? `http://${process.env.GARDEN_CLOUD}` : null
 
+    let secrets = {}
     const clientAuthToken = await readAuthToken(log)
     // If a client auth token exists in local storage, we assume that the user wants to be logged in to the platform.
     if (clientAuthToken && sessionId) {
@@ -300,6 +305,13 @@ export class Garden {
         throw new InternalError(errMsg, {})
       } else {
         await login(platformUrl, log)
+        secrets = await getSecrets({
+          projectConfig: config,
+          clientAuthToken,
+          log,
+          platformUrl,
+          environmentName,
+        })
       }
     }
 
@@ -312,6 +324,7 @@ export class Garden {
       projectName,
       environmentName,
       variables,
+      secrets,
       projectSources,
       buildDir,
       production,
@@ -628,7 +641,14 @@ export class Garden {
 
   async getOutputConfigContext(modules: Module[], runtimeContext: RuntimeContext) {
     const providers = await this.resolveProviders()
-    return new OutputConfigContext(this, providers, this.variables, modules, runtimeContext)
+    return new OutputConfigContext({
+      garden: this,
+      resolvedProviders: providers,
+      variables: this.variables,
+      secrets: this.secrets,
+      modules,
+      runtimeContext,
+    })
   }
 
   /**
@@ -722,6 +742,7 @@ export class Garden {
         garden: this,
         resolvedProviders: providers,
         variables: this.variables,
+        secrets: this.secrets,
         dependencyConfigs: resolvedModules,
         dependencyVersions: fromPairs(resolvedModules.map((m) => [m.name, m.version])),
         runtimeContext,

@@ -206,6 +206,14 @@ Alias for the variables field.
 | -------- | ------- |
 | `object` | `{}`    |
 
+### `${secrets.*}`
+
+A map of all secrets for this project in the current environment.
+
+| Type     |
+| -------- |
+| `object` |
+
 
 ## Module configuration context
 
@@ -342,6 +350,14 @@ Alias for the variables field.
 | Type     | Default |
 | -------- | ------- |
 | `object` | `{}`    |
+
+### `${secrets.*}`
+
+A map of all secrets for this project in the current environment.
+
+| Type     |
+| -------- |
+| `object` |
 
 ### `${modules.*}`
 
@@ -511,6 +527,14 @@ Alias for the variables field.
 | Type     | Default |
 | -------- | ------- |
 | `object` | `{}`    |
+
+### `${secrets.*}`
+
+A map of all secrets for this project in the current environment.
+
+| Type     |
+| -------- |
+| `object` |
 
 ### `${modules.*}`
 

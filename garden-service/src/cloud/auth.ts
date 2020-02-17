@@ -26,7 +26,6 @@ import { RuntimeError } from "../exceptions"
  */
 export async function login(platformUrl: string, log: LogEntry): Promise<string> {
   const savedToken = await readAuthToken(log)
-
   // Ping platform with saved token (if it exists)
   if (savedToken) {
     log.debug("Local client auth token found, verifying it with platform...")

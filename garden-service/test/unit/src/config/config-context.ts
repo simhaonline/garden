@@ -250,7 +250,7 @@ describe("ConfigContext", () => {
 })
 
 describe("ProjectConfigContext", () => {
-  it("should should resolve local env variables", async () => {
+  it("should resolve local env variables", async () => {
     process.env.TEST_VARIABLE = "value"
     const c = new ProjectConfigContext("/tmp", "some-user")
     expect(await c.resolve({ key: ["local", "env", "TEST_VARIABLE"], nodePath: [], opts: {} })).to.eql({
@@ -280,12 +280,13 @@ describe("ModuleConfigContext", () => {
       garden,
       resolvedProviders: await garden.resolveProviders(),
       variables: garden.variables,
+      secrets: { someSecret: "someSecretValue" },
       dependencyConfigs: modules,
       dependencyVersions: fromPairs(modules.map((m) => [m.name, m.version])),
     })
   })
 
-  it("should should resolve local env variables", async () => {
+  it("should resolve local env variables", async () => {
     process.env.TEST_VARIABLE = "foo"
     expect(await c.resolve({ key: ["local", "env", "TEST_VARIABLE"], nodePath: [], opts: {} })).to.eql({
       resolved: "foo",
@@ -293,19 +294,19 @@ describe("ModuleConfigContext", () => {
     delete process.env.TEST_VARIABLE
   })
 
-  it("should should resolve the local platform", async () => {
+  it("should resolve the local platform", async () => {
     expect(await c.resolve({ key: ["local", "platform"], nodePath: [], opts: {} })).to.eql({
       resolved: process.platform,
     })
   })
 
-  it("should should resolve the environment config", async () => {
+  it("should resolve the environment config", async () => {
     expect(await c.resolve({ key: ["environment", "name"], nodePath: [], opts: {} })).to.eql({
       resolved: garden.environmentName,
     })
   })
 
-  it("should should resolve the path of a module", async () => {
+  it("should resolve the path of a module", async () => {
     const path = join(garden.projectRoot, "module-a")
     expect(await c.resolve({ key: ["modules", "module-a", "path"], nodePath: [], opts: {} })).to.eql({ resolved: path })
   })
@@ -318,18 +319,33 @@ describe("ModuleConfigContext", () => {
     })
   })
 
-  it("should should resolve the outputs of a module", async () => {
+  it("should resolve the outputs of a module", async () => {
     expect(await c.resolve({ key: ["modules", "module-a", "outputs", "foo"], nodePath: [], opts: {} })).to.eql({
       resolved: "bar",
     })
   })
 
-  it("should should resolve a project variable", async () => {
+  it("should resolve a project variable", async () => {
     expect(await c.resolve({ key: ["variables", "some"], nodePath: [], opts: {} })).to.eql({ resolved: "variable" })
   })
 
-  it("should should resolve a project variable under the var alias", async () => {
+  it("should resolve a project variable under the var alias", async () => {
     expect(await c.resolve({ key: ["var", "some"], nodePath: [], opts: {} })).to.eql({ resolved: "variable" })
+  })
+
+  context("secrets", () => {
+    it("should resolve a secret", async () => {
+      expect(await c.resolve({ key: ["secrets", "someSecret"], nodePath: [], opts: {} })).to.eql({
+        resolved: "someSecretValue",
+      })
+    })
+
+    it("should throw when resolving a secret with a missing key", async () => {
+      await expectError(
+        () => c.resolve({ key: ["secrets", "missingSecret"], nodePath: [], opts: {} }),
+        (err) => expect(stripAnsi(err.message)).to.equal("Could not find key missingSecret under secrets.")
+      )
+    })
   })
 
   context("runtimeContext is not set", () => {
@@ -368,6 +384,8 @@ describe("ModuleConfigContext", () => {
       const serviceB = graph.getService("service-b")
       const taskB = graph.getTask("task-b")
 
+      const secrets = {}
+
       const runtimeContext = await prepareRuntimeContext({
         garden,
         graph,
@@ -404,6 +422,7 @@ describe("ModuleConfigContext", () => {
         garden,
         resolvedProviders: await garden.resolveProviders(),
         variables: garden.variables,
+        secrets,
         dependencyConfigs: modules,
         dependencyVersions: fromPairs(modules.map((m) => [m.name, m.version])),
         runtimeContext,
