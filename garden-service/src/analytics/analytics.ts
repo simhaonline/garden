@@ -60,7 +60,7 @@ export interface AnalyticsEventProperties {
   ciName: string | null
   system: SystemInfo
   isCI: boolean
-  sessionId: string | null
+  sessionId: string
   projectMetadata: ProjectMetadata
 }
 
