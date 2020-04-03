@@ -68,18 +68,12 @@ export class BufferedEventStream {
   private bufferedEvents: StreamEvent[]
   private bufferedLogEntries: LogEntryEvent[]
 
-  // For testing.
-  public flushEventsTestHandler: null | ((events: StreamEvent[]) => void)
-  public flushLogEntriesTestHandler: null | ((logEntries: LogEntryEvent[]) => void)
-
   constructor(log: LogEntry, sessionId: string) {
     this.sessionId = sessionId
     this.log = log
     this.log.root.events.onAny((_name: string, payload: LogEntryEvent) => {
       this.streamLogEntry(payload)
     })
-    this.flushEventsTestHandler = null
-    this.flushLogEntriesTestHandler = null
     this.bufferedEvents = []
     this.bufferedLogEntries = []
   }
@@ -171,22 +165,17 @@ export class BufferedEventStream {
   }
 
   flushBuffered({ flushAll = false }) {
-    if (!this.clientAuthToken || !this.platformUrl) {
-      return
-    }
     const eventsToFlush = this.bufferedEvents.splice(0, flushAll ? this.bufferedEvents.length : MAX_BATCH_SIZE)
 
     if (eventsToFlush.length > 0) {
-      this.flushEventsTestHandler ? this.flushEventsTestHandler(eventsToFlush) : this.flushEvents(eventsToFlush)
+      this.flushEvents(eventsToFlush)
     }
 
     const logEntryFlushCount = flushAll ? this.bufferedLogEntries.length : MAX_BATCH_SIZE - eventsToFlush.length
     const logEntriesToFlush = this.bufferedLogEntries.splice(0, logEntryFlushCount)
 
     if (logEntriesToFlush.length > 0) {
-      this.flushLogEntriesTestHandler
-        ? this.flushLogEntriesTestHandler(logEntriesToFlush)
-        : this.flushLogEntries(logEntriesToFlush)
+      this.flushLogEntries(logEntriesToFlush)
     }
   }
 }

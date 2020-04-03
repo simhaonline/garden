@@ -56,7 +56,7 @@ import { AnalyticsHandler } from "../analytics/analytics"
 import { defaultDotIgnoreFiles } from "../util/fs"
 import { renderError } from "../logger/renderers"
 import { getDefaultProfiler } from "../util/profiling"
-import { BufferedEventStream } from "../platform/buffered-event-stream"
+import { BufferedEventStream } from "../cloud/buffered-event-stream"
 
 const OUTPUT_RENDERERS = {
   json: (data: DeepPrimitiveMap) => {

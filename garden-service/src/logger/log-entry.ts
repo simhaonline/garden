@@ -14,7 +14,7 @@ import { Omit } from "../util/util"
 import { getChildEntries, findParentEntry } from "./util"
 import { GardenError } from "../exceptions"
 import { Logger } from "./logger"
-import { formatForEventStream } from "../platform/buffered-event-stream"
+import { formatForEventStream } from "../cloud/buffered-event-stream"
 
 export type EmojiName = keyof typeof nodeEmoji.emoji
 export type LogSymbol = keyof typeof logSymbols | "empty"

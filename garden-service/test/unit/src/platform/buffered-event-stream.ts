@@ -7,7 +7,7 @@
  */
 
 import { expect } from "chai"
-import { StreamEvent, LogEntryEvent, BufferedEventStream } from "../../../../src/platform/buffered-event-stream"
+import { StreamEvent, LogEntryEvent, BufferedEventStream } from "../../../../src/cloud/buffered-event-stream"
 import { getLogger } from "../../../../src/logger/logger"
 import { EventBus } from "../../../../src/events"
 
@@ -20,10 +20,10 @@ describe("BufferedEventStream", () => {
 
     const bufferedEventStream = new BufferedEventStream(log, "dummy-session-id")
 
-    bufferedEventStream.flushEventsTestHandler = (events: StreamEvent[]) => {
+    bufferedEventStream["flushEvents"] = (events: StreamEvent[]) => {
       flushedEvents.push(...events)
     }
-    bufferedEventStream.flushLogEntriesTestHandler = (logEntries: LogEntryEvent[]) => {
+    bufferedEventStream["flushLogEntries"] = (logEntries: LogEntryEvent[]) => {
       flushedLogEntries.push(...logEntries)
     }
 
@@ -47,10 +47,10 @@ describe("BufferedEventStream", () => {
 
     const bufferedEventStream = new BufferedEventStream(log, "dummy-session-id")
 
-    bufferedEventStream.flushEventsTestHandler = (events: StreamEvent[]) => {
+    bufferedEventStream["flushEvents"] = (events: StreamEvent[]) => {
       flushedEvents.push(...events)
     }
-    bufferedEventStream.flushLogEntriesTestHandler = (logEntries: LogEntryEvent[]) => {
+    bufferedEventStream["flushLogEntries"] = (logEntries: LogEntryEvent[]) => {
       flushedLogEntries.push(...logEntries)
     }
 
