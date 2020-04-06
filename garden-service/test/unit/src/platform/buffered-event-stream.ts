@@ -28,7 +28,7 @@ describe("BufferedEventStream", () => {
     }
 
     const eventBus = new EventBus()
-    bufferedEventStream.connect(eventBus, "dummy-client-token", "dummy-platform_url")
+    bufferedEventStream.connect(eventBus, "dummy-client-token", "dummy-platform_url", "myproject")
 
     eventBus.emit("_test", {})
     log.root.events.emit("_test", {})
@@ -55,9 +55,9 @@ describe("BufferedEventStream", () => {
     }
 
     const oldEventBus = new EventBus()
-    bufferedEventStream.connect(oldEventBus, "dummy-client-token", "dummy-platform_url")
+    bufferedEventStream.connect(oldEventBus, "dummy-client-token", "dummy-platform_url", "myproject")
     const newEventBus = new EventBus()
-    bufferedEventStream.connect(newEventBus, "dummy-client-token", "dummy-platform_url")
+    bufferedEventStream.connect(newEventBus, "dummy-client-token", "dummy-platform_url", "myproject")
 
     log.root.events.emit("_test", {})
     oldEventBus.emit("_test", {})

@@ -348,7 +348,7 @@ export class GardenCli {
           }
 
           if (garden.clientAuthToken && garden.platformUrl) {
-            bufferedEventStream.connect(garden.events, garden.clientAuthToken, garden.platformUrl)
+            bufferedEventStream.connect(garden.events, garden.clientAuthToken, garden.platformUrl, garden.projectName)
           }
 
           // Register log file writers. We need to do this after the Garden class is initialised because

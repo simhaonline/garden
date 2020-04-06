@@ -57,6 +57,7 @@ export class BufferedEventStream {
   public sessionId: string
   private platformUrl: string
   private clientAuthToken: string
+  private projectName: string
 
   /**
    * We maintain this map to facilitate unsubscribing from a previously connected event bus
@@ -78,9 +79,11 @@ export class BufferedEventStream {
     this.bufferedLogEntries = []
   }
 
-  connect(eventBus: EventBus, clientAuthToken: string, platformUrl: string) {
+  // TODO: Replace projectName with projectId once we've figured out the flow for that.
+  connect(eventBus: EventBus, clientAuthToken: string, platformUrl: string, projectName: string) {
     this.clientAuthToken = clientAuthToken
     this.platformUrl = platformUrl
+    this.projectName = projectName
 
     if (!this.intervalId) {
       this.startInterval()
@@ -147,6 +150,7 @@ export class BufferedEventStream {
       events,
       clientAuthToken: this.clientAuthToken,
       sessionId: this.sessionId,
+      projectName: this.projectName,
     }
     got.post(`${this.platformUrl}/events`, { json: data }).catch((err) => {
       this.log.error(err)
@@ -158,6 +162,7 @@ export class BufferedEventStream {
       logEntries,
       clientAuthToken: this.clientAuthToken,
       sessionId: this.sessionId,
+      projectName: this.projectName,
     }
     got.post(`${this.platformUrl}/log-entries`, { json: data }).catch((err) => {
       this.log.error(err)
