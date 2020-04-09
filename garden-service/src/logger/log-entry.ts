@@ -195,8 +195,8 @@ export class LogEntry extends LogNode {
     })
   }
 
-  protected onGraphChange(node: LogEntry) {
-    this.root.onGraphChange(node)
+  protected onGraphChange() {
+    this.root.onGraphChange(this)
   }
 
   getMetadata() {
@@ -237,13 +237,13 @@ export class LogEntry extends LogNode {
   setState(params?: string | UpdateLogEntryParams): LogEntry {
     this.isPlaceholder = false
     this.deepUpdate({ ...resolveParams(params) })
-    this.onGraphChange(this)
+    this.onGraphChange()
     return this
   }
 
   setDone(params?: string | Omit<UpdateLogEntryParams, "status">): LogEntry {
     this.deepUpdate({ ...resolveParams(params), status: "done" })
-    this.onGraphChange(this)
+    this.onGraphChange()
     return this
   }
 
@@ -253,7 +253,7 @@ export class LogEntry extends LogNode {
       symbol: "success",
       status: "success",
     })
-    this.onGraphChange(this)
+    this.onGraphChange()
     return this
   }
 
@@ -263,7 +263,7 @@ export class LogEntry extends LogNode {
       symbol: "error",
       status: "error",
     })
-    this.onGraphChange(this)
+    this.onGraphChange()
     return this
   }
 
@@ -273,7 +273,7 @@ export class LogEntry extends LogNode {
       symbol: "warning",
       status: "warn",
     })
-    this.onGraphChange(this)
+    this.onGraphChange()
     return this
   }
 
@@ -285,7 +285,7 @@ export class LogEntry extends LogNode {
     // Stop gracefully if still in active state
     if (this.getMessageState().status === "active") {
       this.update({ symbol: "empty", status: "done" })
-      this.onGraphChange(this)
+      this.onGraphChange()
     }
     return this
   }
