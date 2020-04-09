@@ -50,8 +50,7 @@ export class EventBus extends EventEmitter2 {
  */
 export interface LoggerEvents {
   _test: any
-  logEntryCreated: LogEntryEvent
-  logEntryUpdated: LogEntryEvent
+  logEntry: LogEntryEvent
 }
 
 export type LoggerEventName = keyof LoggerEvents

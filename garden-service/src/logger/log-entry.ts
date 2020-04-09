@@ -14,7 +14,6 @@ import { Omit } from "../util/util"
 import { getChildEntries, findParentEntry } from "./util"
 import { GardenError } from "../exceptions"
 import { Logger } from "./logger"
-import { formatForEventStream } from "../cloud/buffered-event-stream"
 
 export type EmojiName = keyof typeof nodeEmoji.emoji
 export type LogSymbol = keyof typeof logSymbols | "empty"
@@ -106,7 +105,7 @@ export class LogEntry extends LogNode {
     this.metadata = params.metadata
     this.id = params.id
     this.isPlaceholder = params.isPlaceholder
-    this.revision = 0
+    this.revision = -1
 
     if (!params.isPlaceholder) {
       this.update({
@@ -119,10 +118,6 @@ export class LogEntry extends LogNode {
         dataFormat: params.dataFormat,
         maxSectionWidth: params.maxSectionWidth,
       })
-
-      if (this.level <= EVENT_LOG_LEVEL) {
-        this.root.events.emit("logEntryCreated", formatForEventStream(this))
-      }
     }
   }
 
@@ -202,9 +197,6 @@ export class LogEntry extends LogNode {
 
   protected onGraphChange(node: LogEntry) {
     this.root.onGraphChange(node)
-    if (node.level <= EVENT_LOG_LEVEL) {
-      this.root.events.emit("logEntryUpdated", formatForEventStream(node))
-    }
   }
 
   getMetadata() {
@@ -245,13 +237,13 @@ export class LogEntry extends LogNode {
   setState(params?: string | UpdateLogEntryParams): LogEntry {
     this.isPlaceholder = false
     this.deepUpdate({ ...resolveParams(params) })
-    this.root.onGraphChange(this)
+    this.onGraphChange(this)
     return this
   }
 
   setDone(params?: string | Omit<UpdateLogEntryParams, "status">): LogEntry {
     this.deepUpdate({ ...resolveParams(params), status: "done" })
-    this.root.onGraphChange(this)
+    this.onGraphChange(this)
     return this
   }
 
@@ -261,7 +253,7 @@ export class LogEntry extends LogNode {
       symbol: "success",
       status: "success",
     })
-    this.root.onGraphChange(this)
+    this.onGraphChange(this)
     return this
   }
 
@@ -271,7 +263,7 @@ export class LogEntry extends LogNode {
       symbol: "error",
       status: "error",
     })
-    this.root.onGraphChange(this)
+    this.onGraphChange(this)
     return this
   }
 
@@ -281,7 +273,7 @@ export class LogEntry extends LogNode {
       symbol: "warning",
       status: "warn",
     })
-    this.root.onGraphChange(this)
+    this.onGraphChange(this)
     return this
   }
 
@@ -293,7 +285,7 @@ export class LogEntry extends LogNode {
     // Stop gracefully if still in active state
     if (this.getMessageState().status === "active") {
       this.update({ symbol: "empty", status: "done" })
-      this.root.onGraphChange(this)
+      this.onGraphChange(this)
     }
     return this
   }
